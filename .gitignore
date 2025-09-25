@@ -1,0 +1,68 @@
+# =====================
+# Node.js
+# =====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Arquivos de build
+dist/
+build/
+
+# =====================
+# Spring Boot / Java
+# =====================
+/target/
+/*.class
+*.jar
+*.war
+*.iml
+*.log
+*.class
+/.idea/
+/*.ipr
+/*.iws
+/out/
+
+# =====================
+# Banco de dados local
+# =====================
+db.json   # seu LowDB
+*.sqlite
+*.h2.db
+
+# =====================
+# WhatsApp Web / Puppeteer
+# =====================
+/sessions/    # se você salva sessão do WhatsApp
+*.localstorage
+
+# =====================
+# Sistema / OS
+# =====================
+.DS_Store
+Thumbs.db
+.vscode/
+
+# =====================
+# Outros arquivos temporários
+# =====================
+*.tmp
+*.temp
+*.bak
+# Sessões do WhatsApp Web
+.wwebjs_auth/
+# Node dependencies
+node_modules/
+.wwebjs_cache/
+Api-wpp.git/
+backup-repo.git/
+node_modules/
+.wwebjs_auth/
+sessions/
+dist/
+build/
+*.log
