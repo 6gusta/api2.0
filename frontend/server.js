@@ -1,29 +1,39 @@
 // server.js
-const axios = require('axios'); // Para enviar mensagens para o backend Java
 const express = require('express');
 const cors = require('cors');
-const { Client, LocalAuth } = require('whatsapp-web.js'); // WhatsApp Web API não oficial
-const qrcode = require('qrcode'); // Para gerar QR Code
-const db = require('./db'); // LowDB, nosso "banco de dados" local
-const puppeteer = require('puppeteer'); // Para o modo headless do WhatsApp Web
+const axios = require('axios');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode');
+const puppeteer = require('puppeteer');
+const db = require('./db');
 
-// Inicializa o servidor Express
 const app = express();
-app.use(cors()); // Permite requisições externas
-app.use(express.json()); // Permite receber JSON no corpo das requisições
-app.use(express.static('frontend')); // Servir arquivos estáticos da pasta frontend
 
-// Estrutura para guardar instâncias ativas em memória
-let instancias = {}; // Exemplo: { "usuario1": { client, ready, qr } }
-const MAX_INSTANCIAS_GRATIS = 2; // Limite de instâncias gratuitas
+// ---------------- MIDDLEWARES ----------------
+app.use(cors({
+    origin: "http://localhost:4200" // libera pro Angular
+}));
+app.use(express.json());
+app.use(express.static('frontend'));
 
-// Função para criar uma instância do WhatsApp
+// ---------------- VARIÁVEIS ----------------
+let instancias = {};
+const MAX_INSTANCIAS_GRATIS = 2;
+
+// ---------------- FUNÇÕES AUXILIARES ----------------
+function formatNumber(num) {
+    let n = num.replace(/\D/g, '');
+    if (n.length === 10 || n.length === 11) n = '55' + n;
+    if (!n.startsWith('55')) n = '55' + n;
+    return n + '@c.us';
+}
+
 async function criarInstancia(nome) {
-    if (instancias[nome]) return; // Evita duplicadas
+    if (instancias[nome]) return;
 
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: nome }),
-        puppeteer: { 
+        puppeteer: {
             headless: true,
             executablePath: puppeteer.executablePath(),
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -32,89 +42,51 @@ async function criarInstancia(nome) {
 
     instancias[nome] = { client, ready: false, qr: null };
 
-    // QR Code gerado
     client.on('qr', qr => {
         instancias[nome].qr = qr;
         instancias[nome].ready = false;
         console.log(`QR Code da instância "${nome}" gerado.`);
     });
 
-    // WhatsApp pronto
     client.on('ready', () => {
         instancias[nome].ready = true;
         instancias[nome].qr = null;
         console.log(`✅ Instância "${nome}" conectada!`);
-
-        db.get('instancias')
-          .find({ name: nome })
-          .assign({ ready: true })
-          .write();
+        db.get('instancias').find({ name: nome }).assign({ ready: true }).write();
     });
 
-    // Recebendo mensagens
-   // Recebendo mensagens
-client.on('message', async (msg) => {
-    let texto = msg.body;
+    client.on('message', async msg => {
+        let texto = msg.body || (msg.hasMedia ? '[Mensagem com mídia]' : '[Mensagem vazia]');
+        const payload = {
+            fromNumber: msg.from.replace('@c.us', ''),
+            body: texto,
+            timestamp: msg.timestamp
+        };
 
-    // Se msg.body estiver vazio, pode ser mídia
-    if (!texto) {
-        if (msg.hasMedia) {
-            texto = '[Mensagem com mídia]';
-        } else {
-            texto = '[Mensagem vazia]';
+        try {
+            const url = 'http://localhost:8080/whatsapp/webhook';
+            console.log('Enviando para backend Java:', payload);
+            await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' } });
+        } catch (err) {
+            console.error('Erro ao enviar mensagem para o Java:', err.response?.data || err.message);
         }
-    }
+    });
 
-    const payload = {
-        fromNumber: msg.from.replace('@c.us', ''), // só o número
-        body: texto,
-        timestamp: msg.timestamp
-    };
-
-    try {
-        const url = 'http://localhost:8080/whatsapp/webhook';
-        console.log('Enviando para:', url, payload);
-
-        const response = await axios.post(url, payload, {
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        console.log('Mensagem enviada para o backend Java com sucesso!', response.data);
-    } catch (err) {
-        if (err.response) {
-            console.error('Erro ao enviar mensagem para o Java:', err.response.status, err.response.data);
-        } else {
-            console.error('Erro ao enviar mensagem para o Java:', err.message);
-        }
-    }
-});
-
-
-    // Desconexão
     client.on('disconnected', () => {
         instancias[nome].ready = false;
         instancias[nome].qr = null;
         console.log(`⚠️ Instância "${nome}" desconectada, reiniciando em 5s...`);
-
-        db.get('instancias')
-          .find({ name: nome })
-          .assign({ ready: false })
-          .write();
-
+        db.get('instancias').find({ name: nome }).assign({ ready: false }).write();
         setTimeout(() => client.initialize(), 5000);
     });
 
     client.initialize();
 
-    // Salva no banco
     if (!db.get('instancias').find({ name: nome }).value()) {
-        db.get('instancias')
-          .push({ name: nome, ready: false })
-          .write();
+        db.get('instancias').push({ name: nome, ready: false }).write();
     }
 }
 
-// Restaurar instâncias salvas
 async function restaurarInstancias() {
     const instanciasSalvas = db.get('instancias').value();
     for (const inst of instanciasSalvas) {
@@ -124,18 +96,16 @@ async function restaurarInstancias() {
 }
 restaurarInstancias();
 
-// ------------------- ENDPOINTS -------------------
+// ---------------- ENDPOINTS ----------------
 
-// Criar nova instância
+// Criar instância
 app.post('/initialize', async (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: 'Nome obrigatório' });
 
     if (instancias[name]) return res.json({ status: `Instância "${name}" já existe` });
-
-    if (Object.keys(instancias).length >= MAX_INSTANCIAS_GRATIS) {
+    if (Object.keys(instancias).length >= MAX_INSTANCIAS_GRATIS)
         return res.status(403).json({ error: `Limite de ${MAX_INSTANCIAS_GRATIS} instâncias grátis atingido.` });
-    }
 
     await criarInstancia(name);
     res.json({ status: `Instância "${name}" criada com sucesso!` });
@@ -172,43 +142,60 @@ app.post('/disconnect/:name', async (req, res) => {
         await inst.client.destroy();
         inst.ready = false;
         inst.qr = null;
-
-        db.get('instancias')
-          .remove({ name: req.params.name })
-          .write();
-
+        db.get('instancias').remove({ name: req.params.name }).write();
         delete instancias[req.params.name];
-
         res.json({ status: `Instância "${req.params.name}" desconectada com sucesso!` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Enviar mensagem
+// Enviar mensagem (com verificação real do número)
 app.post('/send/:name', async (req, res) => {
     const inst = instancias[req.params.name];
     if (!inst) return res.status(404).json({ error: 'Instância não encontrada' });
 
-    const { number, message } = req.body;
-    if (!number || !message) return res.status(400).json({ error: 'Número e mensagem são obrigatórios' });
-    if (!inst.ready) return res.status(400).json({ error: 'Instância ainda não conectada' });
+    const number = req.body.number || req.query.to;
+    const message = req.body.message || req.query.message;
+
+    console.log("[NODE] Recebido do Angular:", { rawNumber: number, rawMessage: message });
+
+    if (!number || !message) {
+        return res.status(400).json({ error: 'Número e mensagem são obrigatórios' });
+    }
+
+    if (!inst.ready) {
+        return res.status(400).json({ error: 'Instância ainda não conectada' });
+    }
 
     try {
-        const formattedNumber = number.includes('@c.us') ? number : `${number}@c.us`;
-        await inst.client.sendMessage(formattedNumber, message);
-        res.json({ status: `Mensagem enviada para ${number}` });
+        let finalNumber = formatNumber(number);
+
+        // Verifica se o número existe no WhatsApp
+        const numberId = await inst.client.getNumberId(finalNumber);
+        if (!numberId) {
+            console.log('[NODE] [WARN] Número não registrado no WhatsApp');
+            return res.status(400).json({ error: 'Número não registrado no WhatsApp' });
+        }
+
+        await inst.client.sendMessage(numberId._serialized, message);
+        console.log(`[NODE] Mensagem enviada para ${numberId._serialized}`);
+        res.json({ status: `Mensagem enviada para ${numberId._serialized}` });
+
     } catch (err) {
-        console.error(err);
+        console.error('[NODE ERROR] Falha geral ao enviar mensagem:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Retornar todas instâncias
+// Lista instâncias
 app.get('/instancias', (req, res) => {
-    const insts = db.get('instancias').value();
-    res.json(insts);
+    const lista = Object.keys(instancias).map(name => ({ name }));
+    res.json(lista);
 });
 
-// Inicializa servidor
-app.listen(3000, () => console.log('🚀 API rodando em http://localhost:3000'));
+// ---------------- START SERVER ----------------
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 API rodando em http://localhost:${PORT}`);
+});
