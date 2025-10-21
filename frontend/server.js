@@ -13,7 +13,7 @@ const app = express();
 
 // ---------------- MIDDLEWARES ----------------
 app.use(cors({
-    origin: "http://localhost:4200",
+   origin: '*',
     credentials: true
 }));
 app.use(express.json());
