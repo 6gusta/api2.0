@@ -12,6 +12,7 @@ const disconnectEndpoint = document.getElementById('disconnectEndpoint');
 
 const numberInput = document.getElementById('numberInput');
 const messageInput = document.getElementById('messageInput');
+const fileInput = document.getElementById('fileInput'); // input para imagem
 const sendTestBtn = document.getElementById('sendTestBtn');
 const closeModal = integrationModal.querySelector('.close');
 
@@ -90,27 +91,35 @@ function openIntegrationModal(nome) {
 
     numberInput.value = '';
     messageInput.value = '';
+    fileInput.value = '';
 
     integrationModal.style.display = 'flex';
 }
 
-// Enviar mensagem de teste
+// Enviar mensagem de teste (texto + imagem)
 sendTestBtn.addEventListener('click', async () => {
     const number = numberInput.value.trim();
     const message = messageInput.value.trim();
-    if (!number || !message) return alert("Preencha número e mensagem");
+    const file = fileInput.files[0];
+
+    if (!number && !message && !file) return alert("Preencha número, mensagem ou selecione uma imagem");
+
+    const formData = new FormData();
+    if (number) formData.append('toNumber', number);
+    if (message) formData.append('message', message);
+    formData.append('fromNumber', '5561991763642'); // seu número
+    if (file) formData.append('image', file);
 
     try {
         const res = await fetch(`${API_URL}/send/${modalInstanceName.textContent}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ number, message })
+            body: formData
         });
         const data = await res.json();
         alert(data.status || data.error);
     } catch (err) {
-        console.error(err);
-        alert("Erro ao enviar mensagem: " + err.message);
+        console.error('Erro ao enviar mensagem:', err);
+        alert('Erro ao enviar mensagem. Veja console.');
     }
 });
 

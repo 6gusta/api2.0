@@ -2,6 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               connect-src 'self' http://localhost:3000;
+               img-src 'self' data: https: http:;">
+
     <title>WhatsApp API - Instâncias</title>
     <link rel="stylesheet" href="style.css">
 </head>
