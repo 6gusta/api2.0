@@ -1,8 +1,9 @@
 const LOCAL = window.location.hostname.includes("localhost");
 
 const API_URL = LOCAL 
-    ? "http://localhost:3000" // para desenvolvimento local
-    : "https://api2-0-agp8.onrender.com/";
+    ? "http://localhost:3000" // desenvolvimento local
+    : "https://api2-0-agp8.onrender.com"; // sem barra final
+
 const createBtn = document.getElementById('createBtn');
 const cardsContainer = document.getElementById('cards-container');
 const integrationModal = document.getElementById('integrationModal');
