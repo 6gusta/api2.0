@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Política de segurança ajustada -->
+  <meta http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      style-src 'self' 'unsafe-inline';
+      script-src 'self' 'unsafe-inline';
+      connect-src 'self' http://localhost:3000 https://api2-0-agp8.onrender.com;
+      img-src 'self' data: https: http:;
+    ">
+
+  <title>WhatsApp API - Instâncias</title>
+
+  <!-- ✅ Caminho absoluto corrigido -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Minhas Instâncias</h1>
+    <button id="createBtn">Criar Instância</button>
+    <div id="cards-container"></div>
+  </div>
+
+  <!-- Modal de integração -->
+  <div id="integrationModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Integração da Instância: <span id="modalInstanceName"></span></h2>
+      <ul>
+        <li>Enviar mensagem: <code id="sendEndpoint"></code></li>
+        <li>Verificar status: <code id="statusEndpoint"></code></li>
+        <li>Obter QR Code: <code id="qrEndpoint"></code></li>
+        <li>Desconectar: <code id="disconnectEndpoint"></code></li>
+      </ul>
+
+      <p><strong>Testar envio de mensagem:</strong></p>
+      <input type="text" id="numberInput" placeholder="Número (ex: 5511999999999)" />
+      <input type="text" id="messageInput" placeholder="Mensagem" />
+      <input type="file" id="fileInput" accept="image/*" />
+      <button id="sendTestBtn">Enviar</button>
+    </div>
+  </div>
+
+  <!-- ✅ Caminho absoluto corrigido -->
+  <script src="../js/script.js"></script>
+</body>
+</html>

@@ -5,7 +5,7 @@ const axios = require('axios');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const puppeteer = require('puppeteer');
-const db = require('./db');
+const db = require('../legado/db/db');
 const multer = require('multer');
 const upload = multer(); // multer para upload de imagens em memória
 

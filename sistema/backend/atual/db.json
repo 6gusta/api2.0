@@ -1,0 +1,16 @@
+{
+  "instancias": [
+    {
+      "name": "teste",
+      "ready": false
+    },
+    {
+      "name": "T2",
+      "ready": true
+    },
+    {
+      "name": "mae",
+      "ready": true
+    }
+  ]
+}
