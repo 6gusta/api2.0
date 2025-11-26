@@ -1,21 +1,21 @@
-📱 WhatsApp Multi-Instance API
+WhatsApp Multi-Instance API
 
 API completa para criar, gerenciar e operar instâncias independentes de WhatsApp usando a biblioteca whatsapp-web.js, permitindo envio e recebimento de mensagens, leitura de QR Codes em tempo real e integração com qualquer sistema externo.
 
 Ideal para automações, chatbots, SAC, n8n, Typebot, etc.
 
-🚀 Funcionalidades
+Funcionalidades
 
-✔️ Criar instâncias ilimitadas
-✔️ Obter QR Code em tempo real
-✔️ Enviar mensagens para qualquer número
-✔️ Receber mensagens via Webhook
-✔️ Verificar status da sessão
-✔️ Encerrar/deslogar instâncias
-✔️ API REST documentada
-✔️ Ideal para integrações com chatbots e serviços externos
+✔ Criar instâncias ilimitadas
+✔ Obter QR Code em tempo real
+✔ Enviar mensagens para qualquer número
+✔ Receber mensagens via Webhook
+✔ Verificar status da sessão
+✔ Encerrar/deslogar instâncias
+✔ API REST documentada
+✔ Integração com chatbots e serviços externos
 
-🏗️ Tecnologias
+Tecnologias
 
 Node.js
 
@@ -29,20 +29,20 @@ Nodemon
 
 Axios
 
-📦 Instalação
+Instalação
 git clone https://github.com/6gusta/Api-whatsapp
 cd Api-whatsapp
 npm install
 
-▶️ Iniciar Servidor
+Iniciar Servidor
 npm start
 
 
-O servidor sobe em:
+Servidor disponível em:
 
 http://localhost:3000
 
-🔐 Criar uma nova instância
+Criar uma instância
 POST /instance/create
 Content-Type: application/json
 
@@ -53,26 +53,10 @@ Body:
   "instanceName": "minhaLoja01"
 }
 
-
-Retorno:
-
-{
-  "message": "Instância criada. Aguarde o QR Code.",
-  "instance": "minhaLoja01"
-}
-
-📲 Obter QR Code da Instância
+Obter QR Code da instância
 GET /instance/qr/:instanceName
 
-
-Exemplo:
-
-GET /instance/qr/minhaLoja01
-
-
-Retorno: Base64 do QR Code.
-
-📊 Status da Instância
+Ver status da instância
 GET /instance/status/:instanceName
 
 
@@ -83,7 +67,7 @@ Retorno:
   "status": "CONNECTED"
 }
 
-✉️ Enviar Mensagem
+Enviar Mensagem
 POST /message/send
 Content-Type: application/json
 
@@ -93,37 +77,27 @@ Body:
 {
   "instanceName": "minhaLoja01",
   "to": "5561999999999",
-  "message": "Olá! Tudo certo?"
+  "message": "Olá!"
 }
 
+Webhook (Receber Mensagens)
 
-Retorno:
-
-{
-  "success": true,
-  "info": "Mensagem enviada com sucesso"
-}
-
-🎧 Recebendo Mensagens (Webhook)
-
-A API envia automaticamente qualquer mensagem recebida para o Webhook configurado.
-
-Exemplo de payload recebido:
+Exemplo de payload enviado pela API:
 
 {
   "from": "556191234567",
   "to": "556198765432",
-  "message": "Oi, tudo bem?",
+  "message": "Olá, tudo bem?",
   "timestamp": "2024-11-20T14:21:33Z"
 }
 
-🗑️ Encerrar Sessão
+Encerrar Sessão
 DELETE /instance/logout/:instanceName
 
-❌ Deletar Instância
+Deletar Instância
 DELETE /instance/delete/:instanceName
 
-📁 Estrutura do Projeto
+Estrutura do Projeto
 Api-whatsapp/
 │── src/
 │   ├── server.js
@@ -135,25 +109,10 @@ Api-whatsapp/
 │── package.json
 │── README.md
 
-🔗 Integrações Comuns
-🔹 Typebot
+Integrações
+Typebot
 
-Use a URL:
-
-POST https://seu_servidor.com/message/send
-
-
-Body:
-
-{
-  "instanceName": "minhaLoja01",
-  "to": "{{resposta_do_usuario}}",
-  "message": "Sua mensagem aqui"
-}
-
-🔹 n8n
-
-Node HTTP Request:
+Envie a mensagem com:
 
 POST /message/send
 
@@ -161,18 +120,18 @@ POST /message/send
 Body:
 
 {
-  "instanceName": "myInstance",
-  "to": "55{{numero}}",
-  "message": "Texto automático"
+  "instanceName": "minhaLoja01",
+  "to": "{{numero}}",
+  "message": "Sua resposta aqui"
 }
 
-🛑 Observações Importantes
+n8n
 
-⚠ QR Codes expiram em ~30 segundos
-⚠ Instâncias desconectam se ficarem muito tempo sem uso
-⚠ Sempre armazene a sessão se quiser evitar ler QR Code novamente
+Configurar um node HTTP Request com:
 
-💬 Autor
+POST /message/send
 
-Feito por Luiz Gustavo Pereira de Carvalho (6gusta) 🧑‍💻
-Github: https://github.com/6gusta
+Autor
+
+Desenvolvido por Luiz Gustavo Pereira de Carvalho (6gusta)
+GitHub: https://github.com/6gusta
