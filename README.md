@@ -1,137 +1,185 @@
-WhatsApp Multi-Instance API
+# WhatsApp Multi-Instance API
 
-API completa para criar, gerenciar e operar instâncias independentes de WhatsApp usando a biblioteca whatsapp-web.js, permitindo envio e recebimento de mensagens, leitura de QR Codes em tempo real e integração com qualquer sistema externo.
+API para criar e gerenciar múltiplas instâncias independentes do WhatsApp utilizando a biblioteca whatsapp-web.js. Permite enviar mensagens, receber mensagens via webhook, gerar QR Codes em tempo real e integrar com sistemas externos como n8n, Typebot, chatbot próprio, etc.
 
-Ideal para automações, chatbots, SAC, n8n, Typebot, etc.
+Ideal para automações, SAC, suporte, bots e integrações profissionais.
 
-Funcionalidades
+---
 
-✔ Criar instâncias ilimitadas
-✔ Obter QR Code em tempo real
-✔ Enviar mensagens para qualquer número
-✔ Receber mensagens via Webhook
-✔ Verificar status da sessão
-✔ Encerrar/deslogar instâncias
-✔ API REST documentada
-✔ Integração com chatbots e serviços externos
+## Funcionalidades
 
-Tecnologias
+- Criar instâncias ilimitadas
+- Obter QR Code em tempo real
+- Enviar mensagens de texto
+- Receber mensagens via Webhook
+- Consultar status da sessão
+- Encerrar/deslogar instâncias
+- Integração com API REST
+- Compatível com n8n, Typebot e qualquer sistema externo
 
-Node.js
+---
 
-Express
+## Tecnologias Utilizadas
 
-whatsapp-web.js
+- Node.js
+- Express
+- whatsapp-web.js
+- Axios
+- QRCode
+- Nodemon
 
-QRCode
+---
 
-Nodemon
+## Instalação
 
-Axios
-
-Instalação
+```bash
 git clone https://github.com/6gusta/Api-whatsapp
 cd Api-whatsapp
 npm install
+```
 
-Iniciar Servidor
+---
+
+## Iniciar Servidor
+
+```bash
 npm start
+```
 
-
-Servidor disponível em:
-
+Servidor padrão:  
 http://localhost:3000
 
-Criar uma instância
-POST /instance/create
-Content-Type: application/json
+---
 
+# Endpoints da API
 
-Body:
+## 1. Criar instância
 
+**POST /instance/create**
+
+```json
 {
-  "instanceName": "minhaLoja01"
+  "instanceName": "minhaInstancia"
 }
+```
 
-Obter QR Code da instância
-GET /instance/qr/:instanceName
+---
 
-Ver status da instância
-GET /instance/status/:instanceName
+## 2. Obter QR Code
 
+**GET /instance/qr/:instanceName**
 
-Retorno:
+Retorna a imagem do QR Code em base64 para escanear no celular.
 
+---
+
+## 3. Ver status da instância
+
+**GET /instance/status/:instanceName**
+
+Retorno esperado:
+
+```json
 {
-  "instance": "minhaLoja01",
+  "instance": "minhaInstancia",
   "status": "CONNECTED"
 }
+```
 
-Enviar Mensagem
-POST /message/send
-Content-Type: application/json
+---
 
+## 4. Enviar mensagem
 
-Body:
+**POST /message/send**
 
+```json
 {
-  "instanceName": "minhaLoja01",
+  "instanceName": "minhaInstancia",
   "to": "5561999999999",
-  "message": "Olá!"
+  "message": "Olá! Seu pedido foi recebido."
 }
+```
 
-Webhook (Receber Mensagens)
+---
 
-Exemplo de payload enviado pela API:
+## 5. Receber mensagens (Webhook)
 
+A API envia automaticamente POSTs para o seu webhook configurado.
+
+Exemplo de payload:
+
+```json
 {
   "from": "556191234567",
-  "to": "556198765432",
+  "to": "minhaInstancia",
   "message": "Olá, tudo bem?",
-  "timestamp": "2024-11-20T14:21:33Z"
+  "timestamp": "2024-01-01T00:00:00Z"
 }
+```
 
-Encerrar Sessão
-DELETE /instance/logout/:instanceName
+---
 
-Deletar Instância
-DELETE /instance/delete/:instanceName
+## 6. Encerrar sessão
 
-Estrutura do Projeto
+**DELETE /instance/logout/:instanceName**
+
+---
+
+## 7. Excluir instância
+
+**DELETE /instance/delete/:instanceName**
+
+---
+
+# Estrutura do Projeto
+
+```
 Api-whatsapp/
 │── src/
 │   ├── server.js
 │   ├── routes.js
 │   ├── controllers/
-│   ├── instances/
+│   ├── sessions/
 │   └── utils/
 │
-│── package.json
-│── README.md
+├── package.json
+└── README.md
+```
 
-Integrações
-Typebot
+---
 
-Envie a mensagem com:
+# Integrações
 
+## Typebot
+
+Use um bloco HTTP com:
+
+```
 POST /message/send
-
+Content-Type: application/json
+```
 
 Body:
 
+```json
 {
-  "instanceName": "minhaLoja01",
-  "to": "{{numero}}",
-  "message": "Sua resposta aqui"
+  "instanceName": "loja01",
+  "to": "{{phone}}",
+  "message": "{{resposta_do_typebot}}"
 }
+```
 
-n8n
+---
 
-Configurar um node HTTP Request com:
+## n8n
 
-POST /message/send
+Node → HTTP Request  
+Método: POST  
+URL: `/message/send`
 
-Autor
+---
 
-Desenvolvido por Luiz Gustavo Pereira de Carvalho (6gusta)
+# Autor
+
+Desenvolvido por Luiz Gustavo Pereira de Carvalho  
 GitHub: https://github.com/6gusta
